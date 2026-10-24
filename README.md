@@ -22,6 +22,10 @@ The card does not require Better Thermostat or any other integration.
 
 ### HACS (recommended)
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pilgaard&repository=room-climate-card&category=plugin)
+
+Click the button above and then **Download**, or add the repository manually:
+
 1. Open HACS in Home Assistant.
 2. Open the ⋮ menu → **Custom repositories**.
 3. Paste `https://github.com/pilgaard/room-climate-card`, choose the type
