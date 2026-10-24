@@ -23,7 +23,10 @@ jobs:
             exit 1
           fi
 
+      # No release asset: GitHub's redirect for release downloads carries a
+      # Content-Security-Policy header over 8190 bytes, which aiohttp in Home
+      # Assistant rejects. Without an asset, HACS fetches from
+      # raw.githubusercontent.com instead.
       - uses: softprops/action-gh-release@v2
         with:
-          files: room-climate-card.js
           generate_release_notes: true
