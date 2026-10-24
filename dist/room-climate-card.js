@@ -1,11 +1,10 @@
-/* room-climate-card 0.2.1 — built from src/, do not edit. https://github.com/pilgaard/room-climate-card */
+/* room-climate-card 0.3.0 — built from src/, do not edit. https://github.com/pilgaard/room-climate-card */
 
 // src/const.js
-var VERSION = "0.2.1";
+var VERSION = "0.3.0";
 var CARD_TYPE = "room-climate-card";
 var EDITOR_TYPE = "room-climate-card-editor";
 var DEFAULTS = {
-  radiators: 1,
   humidity_thresholds: [60, 70],
   // below 60 green, 60-69 yellow, 70+ red
   dew_thresholds: [3, 5]
@@ -16,7 +15,6 @@ var DEFAULTS = {
 var TRANSLATIONS = {
   en: {
     card: {
-      radiators: (n) => `${n} radiators`,
       noConnection: "No connection",
       off: "Off",
       turningOn: "Turning on\u2026",
@@ -33,23 +31,18 @@ var TRANSLATIONS = {
       temperature: "Temperature sensor",
       humidity: "Humidity sensor",
       climate: "Thermostat",
-      radiators: "Number of radiators",
       advanced: "Advanced",
       dew_point: "Dew point sensor (optional, otherwise calculated)",
-      dew_margin: "Dew point margin sensor (optional)",
       parked_setpoint: "Parked setpoint (Better Thermostat)",
       humidity_yellow: "Humidity: yellow from (%)",
       humidity_red: "Humidity: red from (%)",
       dew_red: "Dew point margin: red below (K)",
       dew_yellow: "Dew point margin: yellow below (K)",
-      language: "Language",
-      languageAuto: "Same as Home Assistant",
       needsSensor: "Choose a temperature sensor or a thermostat."
     }
   },
   da: {
     card: {
-      radiators: (n) => `${n} radiatorer`,
       noConnection: "Ingen forbindelse",
       off: "Slukket",
       turningOn: "T\xE6nder\u2026",
@@ -66,27 +59,19 @@ var TRANSLATIONS = {
       temperature: "Temperatursensor",
       humidity: "Fugtsensor",
       climate: "Termostat",
-      radiators: "Antal radiatorer",
       advanced: "Avanceret",
       dew_point: "Dugpunktssensor (valgfri, ellers beregnes det)",
-      dew_margin: "Sensor for margin til dugpunkt (valgfri)",
       parked_setpoint: "Parkeret setpunkt (Better Thermostat)",
       humidity_yellow: "Fugt: gul fra (%)",
       humidity_red: "Fugt: r\xF8d fra (%)",
       dew_red: "Margin til dugpunkt: r\xF8d under (K)",
       dew_yellow: "Margin til dugpunkt: gul under (K)",
-      language: "Sprog",
-      languageAuto: "Samme som Home Assistant",
       needsSensor: "V\xE6lg en temperatursensor eller en termostat."
     }
   }
 };
-var LANGUAGE_NAMES = {
-  en: "English",
-  da: "Dansk"
-};
-function languageOf(hass, override) {
-  return override || hass && hass.locale && hass.locale.language || hass && hass.language || "en";
+function languageOf(hass) {
+  return hass && hass.locale && hass.locale.language || hass && hass.language || "en";
 }
 function textsFor(language) {
   const base = String(language).split("-")[0].toLowerCase();
@@ -97,15 +82,12 @@ function textsFor(language) {
 var styles_default = 'ha-card {\n  position: relative;\n  box-sizing: border-box;\n  height: 152px;\n  border: none;\n  box-shadow: none;\n  border-radius: 26px;\n  overflow: hidden;\n  padding: 13px 14px 14px 18px;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  cursor: pointer;\n}\n\n.chips {\n  display: flex;\n  justify-content: space-between;\n  align-items: flex-start;\n  gap: 6px;\n}\n\n.chip {\n  position: relative;\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  font: 600 13px/1 var(--ha-card-header-font-family, inherit);\n  letter-spacing: 0.2px;\n  border: none;\n  border-radius: 999px;\n  min-height: 36px;\n  padding: 0 11px;\n  cursor: pointer;\n  font-family: inherit;\n  white-space: nowrap; /* otherwise "56 %" wraps on narrow cards */\n  flex: none;\n}\n\n/* Invisible touch target: the pill looks 36px tall, but the hit area is 44px,\n   as Apple and Material recommend for a finger. */\n.chip::after {\n  content: "";\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 50%;\n  transform: translateY(-50%);\n  height: 44px;\n}\n\n.chip:focus-visible {\n  outline: 2px solid currentColor;\n  outline-offset: 2px;\n}\n\n.chip ha-icon {\n  --mdc-icon-size: 16px;\n  width: 16px;\n  height: 16px;\n}\n\n.body {\n  display: flex;\n  flex-direction: column;\n}\n\n.temp {\n  font-size: 40px;\n  font-weight: 300;\n  line-height: 1.02;\n  letter-spacing: -1.2px;\n}\n\n.name {\n  font-size: 14.5px;\n  font-weight: 600;\n  line-height: 1.25;\n  opacity: 0.92;\n}\n\n.footer {\n  font-size: 11.5px;\n  font-weight: 500;\n  margin-top: 4px;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n';
 
 // src/editor.js
-var AUTO_LANGUAGE = "auto";
 var SIMPLE_KEYS = [
   "name",
   "temperature",
   "humidity",
   "climate",
-  "radiators",
   "dew_point",
-  "dew_margin",
   "parked_setpoint"
 ];
 var sameArray = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
@@ -154,7 +136,6 @@ var RoomClimateCardEditor = class extends HTMLElement {
       { name: "temperature", selector: sensor("temperature") },
       { name: "humidity", selector: sensor("humidity") },
       { name: "climate", selector: { entity: { filter: { domain: "climate" } } } },
-      { name: "radiators", selector: number(1, 20, 1) },
       {
         type: "expandable",
         name: "advanced",
@@ -162,7 +143,6 @@ var RoomClimateCardEditor = class extends HTMLElement {
         flatten: true,
         schema: [
           { name: "dew_point", selector: { entity: { filter: { domain: "sensor" } } } },
-          { name: "dew_margin", selector: { entity: { filter: { domain: "sensor" } } } },
           { name: "parked_setpoint", selector: number(0, 30, 0.5, "\xB0") },
           {
             type: "grid",
@@ -173,21 +153,6 @@ var RoomClimateCardEditor = class extends HTMLElement {
               { name: "dew_red", selector: number(0, 20, 0.5, "K") },
               { name: "dew_yellow", selector: number(0, 20, 0.5, "K") }
             ]
-          },
-          {
-            name: "language",
-            selector: {
-              select: {
-                mode: "dropdown",
-                options: [
-                  { value: AUTO_LANGUAGE, label: t.languageAuto },
-                  ...Object.entries(LANGUAGE_NAMES).map(([value, label]) => ({
-                    value,
-                    label
-                  }))
-                ]
-              }
-            }
           }
         ]
       }
@@ -219,12 +184,10 @@ var RoomClimateCardEditor = class extends HTMLElement {
     const [dewRed, dewYellow] = config.dew_thresholds || DEFAULTS.dew_thresholds;
     return {
       ...config,
-      radiators: config.radiators ?? DEFAULTS.radiators,
       humidity_yellow: humidityYellow,
       humidity_red: humidityRed,
       dew_red: dewRed,
-      dew_yellow: dewYellow,
-      language: config.language || AUTO_LANGUAGE
+      dew_yellow: dewYellow
     };
   }
   /** flat form data → YAML config, leaving out empty fields and defaults */
@@ -236,12 +199,6 @@ var RoomClimateCardEditor = class extends HTMLElement {
       } else {
         config[key] = data[key];
       }
-    }
-    if (config.radiators === DEFAULTS.radiators) delete config.radiators;
-    if (data.language && data.language !== AUTO_LANGUAGE) {
-      config.language = data.language;
-    } else {
-      delete config.language;
     }
     const thresholds = (key, first, second) => {
       const defaults = DEFAULTS[key];
@@ -341,14 +298,14 @@ var RoomClimateCard = class extends HTMLElement {
   }
   _ourEntities() {
     const c = this._config;
-    return [c.temperature, c.humidity, c.dew_margin, c.climate, c.dew_point].filter(Boolean);
+    return [c.temperature, c.humidity, c.climate, c.dew_point].filter(Boolean);
   }
   getCardSize() {
     return 2;
   }
   /* ---------- language ---------- */
   _language() {
-    return languageOf(this._hass, this._config.language);
+    return languageOf(this._hass);
   }
   _texts() {
     return textsFor(this._language()).card;
@@ -358,11 +315,7 @@ var RoomClimateCard = class extends HTMLElement {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals
     };
-    try {
-      return Number(v).toLocaleString(this._language(), options);
-    } catch (e) {
-      return Number(v).toLocaleString(void 0, options);
-    }
+    return Number(v).toLocaleString(this._language(), options);
   }
   /* ---------- the DOM is built once, after that only text and colors change ---------- */
   _build() {
@@ -406,7 +359,7 @@ var RoomClimateCard = class extends HTMLElement {
     this._el.dew.addEventListener("click", (e) => {
       e.stopPropagation();
       this._moreInfo(
-        this._config.dew_margin || this._config.dew_point || this._config.humidity
+        this._config.dew_point || this._config.humidity
       );
     });
   }
@@ -451,8 +404,7 @@ var RoomClimateCard = class extends HTMLElement {
     );
     let dewPoint = numericState(hass, c.dew_point);
     if (dewPoint === null) dewPoint = dewPointFrom(current, h);
-    let d = numericState(hass, c.dew_margin);
-    if (d === null && dewPoint !== null && current !== null) d = current - dewPoint;
+    const d = dewPoint !== null && current !== null ? current - dewPoint : null;
     const [dRed, dYellow] = c.dew_thresholds;
     const dColor = d === null ? COLORS.grey : d < dRed ? COLORS.red : d < dYellow ? COLORS.yellow : COLORS.orange;
     this._setChip(
@@ -460,7 +412,7 @@ var RoomClimateCard = class extends HTMLElement {
       this._el.dewText,
       d === null ? "\u2013" : `${this._number(d, 1)} K`,
       dColor,
-      !!(c.dew_margin || c.dew_point || c.humidity)
+      !!(c.dew_point || c.humidity)
     );
     this._el.footer.textContent = this._footer(
       climate,
@@ -489,18 +441,17 @@ var RoomClimateCard = class extends HTMLElement {
   _footer(climate, isOn, isHeating, target, dewPoint) {
     const c = this._config;
     const t = this._texts();
-    const radiators = c.radiators > 1 ? ` \xB7 ${t.radiators(c.radiators)}` : "";
     if (climate) {
       if (UNAVAILABLE.includes(climate.state)) {
-        return `${t.noConnection}${radiators}`;
+        return t.noConnection;
       }
-      if (!isOn) return `${t.off}${radiators}`;
+      if (!isOn) return t.off;
       const parked = Number(c.parked_setpoint);
       if (Number.isFinite(target) && Number.isFinite(parked) && target <= parked) {
-        return `${t.turningOn}${radiators}`;
+        return t.turningOn;
       }
       const m = Number.isFinite(target) ? `${this._number(target, 1)}\xB0` : "\u2013";
-      return `${isHeating ? t.heatingTo(m) : t.setTo(m)}${radiators}`;
+      return isHeating ? t.heatingTo(m) : t.setTo(m);
     }
     if (dewPoint !== null) {
       return t.dewPointNoThermostat(`${this._number(dewPoint, 1)}\xB0`);

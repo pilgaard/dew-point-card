@@ -5,7 +5,6 @@
 export const TRANSLATIONS = {
   en: {
     card: {
-      radiators: (n) => `${n} radiators`,
       noConnection: "No connection",
       off: "Off",
       turningOn: "Turning on…",
@@ -22,23 +21,18 @@ export const TRANSLATIONS = {
       temperature: "Temperature sensor",
       humidity: "Humidity sensor",
       climate: "Thermostat",
-      radiators: "Number of radiators",
       advanced: "Advanced",
       dew_point: "Dew point sensor (optional, otherwise calculated)",
-      dew_margin: "Dew point margin sensor (optional)",
       parked_setpoint: "Parked setpoint (Better Thermostat)",
       humidity_yellow: "Humidity: yellow from (%)",
       humidity_red: "Humidity: red from (%)",
       dew_red: "Dew point margin: red below (K)",
       dew_yellow: "Dew point margin: yellow below (K)",
-      language: "Language",
-      languageAuto: "Same as Home Assistant",
       needsSensor: "Choose a temperature sensor or a thermostat.",
     },
   },
   da: {
     card: {
-      radiators: (n) => `${n} radiatorer`,
       noConnection: "Ingen forbindelse",
       off: "Slukket",
       turningOn: "Tænder…",
@@ -55,32 +49,21 @@ export const TRANSLATIONS = {
       temperature: "Temperatursensor",
       humidity: "Fugtsensor",
       climate: "Termostat",
-      radiators: "Antal radiatorer",
       advanced: "Avanceret",
       dew_point: "Dugpunktssensor (valgfri, ellers beregnes det)",
-      dew_margin: "Sensor for margin til dugpunkt (valgfri)",
       parked_setpoint: "Parkeret setpunkt (Better Thermostat)",
       humidity_yellow: "Fugt: gul fra (%)",
       humidity_red: "Fugt: rød fra (%)",
       dew_red: "Margin til dugpunkt: rød under (K)",
       dew_yellow: "Margin til dugpunkt: gul under (K)",
-      language: "Sprog",
-      languageAuto: "Samme som Home Assistant",
       needsSensor: "Vælg en temperatursensor eller en termostat.",
     },
   },
 };
 
-/** Display names for the language picker in the editor. */
-export const LANGUAGE_NAMES = {
-  en: "English",
-  da: "Dansk",
-};
-
-/** The language to use: the override if given, else the user's HA language. */
-export function languageOf(hass, override) {
+/** The user's Home Assistant language. */
+export function languageOf(hass) {
   return (
-    override ||
     (hass && hass.locale && hass.locale.language) ||
     (hass && hass.language) ||
     "en"

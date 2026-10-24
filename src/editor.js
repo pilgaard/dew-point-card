@@ -7,9 +7,7 @@
  */
 
 import { EDITOR_TYPE, DEFAULTS } from "./const.js";
-import { LANGUAGE_NAMES, languageOf, textsFor } from "./translations.js";
-
-const AUTO_LANGUAGE = "auto";
+import { languageOf, textsFor } from "./translations.js";
 
 // Config keys the form owns. Anything else in the config (type, view_layout,
 // grid_options…) is passed through untouched.
@@ -18,9 +16,7 @@ const SIMPLE_KEYS = [
   "temperature",
   "humidity",
   "climate",
-  "radiators",
   "dew_point",
-  "dew_margin",
   "parked_setpoint",
 ];
 
@@ -54,7 +50,7 @@ class RoomClimateCardEditor extends HTMLElement {
       return;
     }
     this._form.hass = hass;
-    // the labels and the language picker follow the user's language
+    // the labels follow the user's language
     if (!previous || previous.locale !== hass.locale) {
       this._form.schema = this._schema();
       this._updateWarning();
@@ -82,7 +78,6 @@ class RoomClimateCardEditor extends HTMLElement {
       { name: "temperature", selector: sensor("temperature") },
       { name: "humidity", selector: sensor("humidity") },
       { name: "climate", selector: { entity: { filter: { domain: "climate" } } } },
-      { name: "radiators", selector: number(1, 20, 1) },
       {
         type: "expandable",
         name: "advanced",
@@ -90,7 +85,6 @@ class RoomClimateCardEditor extends HTMLElement {
         flatten: true,
         schema: [
           { name: "dew_point", selector: { entity: { filter: { domain: "sensor" } } } },
-          { name: "dew_margin", selector: { entity: { filter: { domain: "sensor" } } } },
           { name: "parked_setpoint", selector: number(0, 30, 0.5, "°") },
           {
             type: "grid",
@@ -101,21 +95,6 @@ class RoomClimateCardEditor extends HTMLElement {
               { name: "dew_red", selector: number(0, 20, 0.5, "K") },
               { name: "dew_yellow", selector: number(0, 20, 0.5, "K") },
             ],
-          },
-          {
-            name: "language",
-            selector: {
-              select: {
-                mode: "dropdown",
-                options: [
-                  { value: AUTO_LANGUAGE, label: t.languageAuto },
-                  ...Object.entries(LANGUAGE_NAMES).map(([value, label]) => ({
-                    value,
-                    label,
-                  })),
-                ],
-              },
-            },
           },
         ],
       },
@@ -152,12 +131,10 @@ class RoomClimateCardEditor extends HTMLElement {
     const [dewRed, dewYellow] = config.dew_thresholds || DEFAULTS.dew_thresholds;
     return {
       ...config,
-      radiators: config.radiators ?? DEFAULTS.radiators,
       humidity_yellow: humidityYellow,
       humidity_red: humidityRed,
       dew_red: dewRed,
       dew_yellow: dewYellow,
-      language: config.language || AUTO_LANGUAGE,
     };
   }
 
@@ -171,13 +148,6 @@ class RoomClimateCardEditor extends HTMLElement {
       } else {
         config[key] = data[key];
       }
-    }
-    if (config.radiators === DEFAULTS.radiators) delete config.radiators;
-
-    if (data.language && data.language !== AUTO_LANGUAGE) {
-      config.language = data.language;
-    } else {
-      delete config.language;
     }
 
     const thresholds = (key, first, second) => {

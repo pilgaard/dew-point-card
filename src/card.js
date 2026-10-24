@@ -11,9 +11,7 @@
  *   humidity: sensor.living_room_humidity
  *   dew_point: sensor.living_room_dew_point   # optional — otherwise calculated from temp+humidity
  *   climate: climate.living_room
- *   radiators: 2
  *   parked_setpoint: 5     # the setpoint the thermostat parks at while off (Better Thermostat)
- *   language: en           # optional — defaults to the user's Home Assistant language
  */
 
 import { VERSION, CARD_TYPE, EDITOR_TYPE, DEFAULTS } from "./const.js";
@@ -116,7 +114,7 @@ class RoomClimateCard extends HTMLElement {
 
   _ourEntities() {
     const c = this._config;
-    return [c.temperature, c.humidity, c.dew_margin, c.climate, c.dew_point].filter(Boolean);
+    return [c.temperature, c.humidity, c.climate, c.dew_point].filter(Boolean);
   }
 
   getCardSize() {
@@ -126,7 +124,7 @@ class RoomClimateCard extends HTMLElement {
   /* ---------- language ---------- */
 
   _language() {
-    return languageOf(this._hass, this._config.language);
+    return languageOf(this._hass);
   }
 
   _texts() {
@@ -138,12 +136,7 @@ class RoomClimateCard extends HTMLElement {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     };
-    try {
-      return Number(v).toLocaleString(this._language(), options);
-    } catch (e) {
-      // an invalid language tag in the config makes toLocaleString throw
-      return Number(v).toLocaleString(undefined, options);
-    }
+    return Number(v).toLocaleString(this._language(), options);
   }
 
   /* ---------- the DOM is built once, after that only text and colors change ---------- */
@@ -190,7 +183,7 @@ class RoomClimateCard extends HTMLElement {
     this._el.dew.addEventListener("click", (e) => {
       e.stopPropagation();
       this._moreInfo(
-        this._config.dew_margin || this._config.dew_point || this._config.humidity
+        this._config.dew_point || this._config.humidity
       );
     });
   }
@@ -264,12 +257,11 @@ class RoomClimateCard extends HTMLElement {
 
     // dew chip: the margin is the temperature minus the dew point, and the dew
     // point can be calculated from temperature and humidity. So the card handles
-    // both itself, and no template sensors are needed per room. Existing sensors
-    // win if configured: dew_margin over dew_point, dew_point over the calculation.
+    // both itself, and no template sensors are needed per room. An existing
+    // dew_point sensor wins over the calculation if configured.
     let dewPoint = numericState(hass, c.dew_point);
     if (dewPoint === null) dewPoint = dewPointFrom(current, h);
-    let d = numericState(hass, c.dew_margin);
-    if (d === null && dewPoint !== null && current !== null) d = current - dewPoint;
+    const d = dewPoint !== null && current !== null ? current - dewPoint : null;
     const [dRed, dYellow] = c.dew_thresholds;
     const dColor =
       d === null
@@ -284,7 +276,7 @@ class RoomClimateCard extends HTMLElement {
       this._el.dewText,
       d === null ? "–" : `${this._number(d, 1)} K`,
       dColor,
-      !!(c.dew_margin || c.dew_point || c.humidity)
+      !!(c.dew_point || c.humidity)
     );
 
     // footer
@@ -321,14 +313,13 @@ class RoomClimateCard extends HTMLElement {
   _footer(climate, isOn, isHeating, target, dewPoint) {
     const c = this._config;
     const t = this._texts();
-    const radiators = c.radiators > 1 ? ` · ${t.radiators(c.radiators)}` : "";
 
     if (climate) {
       // unavailable is not the same as off: the thermostat just isn't responding.
       if (UNAVAILABLE.includes(climate.state)) {
-        return `${t.noConnection}${radiators}`;
+        return t.noConnection;
       }
-      if (!isOn) return `${t.off}${radiators}`;
+      if (!isOn) return t.off;
       // Better Thermostat parks the setpoint at a fixed low value (usually
       // min_temp, 5°) while the room is off. If the room is on and the setpoint
       // is still parked, BT hasn't yet written the real temperature out to the
@@ -338,10 +329,10 @@ class RoomClimateCard extends HTMLElement {
       // get this text when someone deliberately turns them down to the minimum.
       const parked = Number(c.parked_setpoint);
       if (Number.isFinite(target) && Number.isFinite(parked) && target <= parked) {
-        return `${t.turningOn}${radiators}`;
+        return t.turningOn;
       }
       const m = Number.isFinite(target) ? `${this._number(target, 1)}°` : "–";
-      return `${isHeating ? t.heatingTo(m) : t.setTo(m)}${radiators}`;
+      return isHeating ? t.heatingTo(m) : t.setTo(m);
     }
     // room without a thermostat: show the absolute dew point instead
     if (dewPoint !== null) {
