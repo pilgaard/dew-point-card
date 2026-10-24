@@ -5,7 +5,7 @@ const { version } = JSON.parse(readFileSync("package.json", "utf8"));
 const watch = process.argv.includes("--watch");
 
 const options = {
-  entryPoints: ["src/room-climate-card.js"],
+  entryPoints: ["src/card.js"],
   outfile: "dist/room-climate-card.js",
   bundle: true,
   format: "esm",

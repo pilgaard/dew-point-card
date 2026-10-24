@@ -110,7 +110,7 @@ The source lives in `src/` and is bundled with esbuild into
 
 ```
 src/
-  room-climate-card.js   the card (entry point)
+  card.js                the card (entry point)
   editor.js              the visual editor, built on Home Assistant's ha-form
   translations.js        texts for the card and the editor
   styles.css             the card's styles

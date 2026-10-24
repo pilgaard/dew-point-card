@@ -1,7 +1,7 @@
-/* room-climate-card 0.2.0 — built from src/, do not edit. https://github.com/pilgaard/room-climate-card */
+/* room-climate-card 0.2.1 — built from src/, do not edit. https://github.com/pilgaard/room-climate-card */
 
 // src/const.js
-var VERSION = "0.2.0";
+var VERSION = "0.2.1";
 var CARD_TYPE = "room-climate-card";
 var EDITOR_TYPE = "room-climate-card-editor";
 var DEFAULTS = {
@@ -270,7 +270,7 @@ if (!customElements.get(EDITOR_TYPE)) {
   customElements.define(EDITOR_TYPE, RoomClimateCardEditor);
 }
 
-// src/room-climate-card.js
+// src/card.js
 var COLORS = {
   green: { text: "#6fd39a", background: "rgba(111,211,154,.13)" },
   yellow: { text: "#ffd479", background: "rgba(255,190,80,.14)" },

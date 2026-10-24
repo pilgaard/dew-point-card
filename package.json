@@ -1,6 +1,6 @@
 {
   "name": "room-climate-card",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Room climate card for Home Assistant: temperature, humidity and dew point margin",
   "private": true,
   "type": "module",
