@@ -1,13 +1,13 @@
-# Room Climate Card
+# Dew Point Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
-[![Validate](https://github.com/pilgaard/room-climate-card/actions/workflows/validate.yml/badge.svg)](https://github.com/pilgaard/room-climate-card/actions/workflows/validate.yml)
+[![Validate](https://github.com/pilgaard/dew-point-card/actions/workflows/validate.yml/badge.svg)](https://github.com/pilgaard/dew-point-card/actions/workflows/validate.yml)
 
-A room climate card for Home Assistant. It shows the temperature, the humidity
-and how far the temperature is from the dew point, and its background follows
-the thermostat.
+A Home Assistant card for a room: temperature, humidity and how far the room
+is from the dew point, so you can see the risk of condensation at a glance. Its
+background follows the thermostat.
 
-![Room climate cards on a dashboard](https://raw.githubusercontent.com/pilgaard/room-climate-card/main/docs/cards.png)
+![Dew point cards on a dashboard](https://raw.githubusercontent.com/pilgaard/dew-point-card/main/docs/cards.png)
 
 - Visual editor: set it up from the dashboard UI, no YAML needed
 - Calculates the dew point from temperature and humidity, so you don't need a
@@ -22,23 +22,23 @@ The card does not require Better Thermostat or any other integration.
 
 ### HACS (recommended)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pilgaard&repository=room-climate-card&category=plugin)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pilgaard&repository=dew-point-card&category=plugin)
 
 Click the button above and then **Download**, or add the repository manually:
 
 1. Open HACS in Home Assistant.
 2. Open the ⋮ menu → **Custom repositories**.
-3. Paste `https://github.com/pilgaard/room-climate-card`, choose the type
+3. Paste `https://github.com/pilgaard/dew-point-card`, choose the type
    **Dashboard** and click **Add**.
-4. Find **Room Climate Card**, click **Download** and reload your browser.
+4. Find **Dew Point Card**, click **Download** and reload your browser.
 
 ### Manual
 
 1. Download
-   [`dist/room-climate-card.js`](https://github.com/pilgaard/room-climate-card/raw/main/dist/room-climate-card.js)
+   [`dist/dew-point-card.js`](https://github.com/pilgaard/dew-point-card/raw/main/dist/dew-point-card.js)
    and copy it to `config/www/`.
 2. Go to **Settings → Dashboards → ⋮ → Resources → Add resource**:
-   - URL: `/local/room-climate-card.js?v=1`
+   - URL: `/local/dew-point-card.js?v=1`
    - Type: **JavaScript module**
 3. Reload your browser.
 
@@ -47,13 +47,13 @@ new version instead of a cached one.
 
 ## Configuration
 
-Add the card from the dashboard: **Edit dashboard → Add card → Room Climate
+Add the card from the dashboard: **Edit dashboard → Add card → Dew Point
 Card**. Everything can be set in the visual editor, or in YAML:
 
-![The visual editor](https://raw.githubusercontent.com/pilgaard/room-climate-card/main/docs/editor.png)
+![The visual editor](https://raw.githubusercontent.com/pilgaard/dew-point-card/main/docs/editor.png)
 
 ```yaml
-type: custom:room-climate-card
+type: custom:dew-point-card
 name: Living room
 temperature: sensor.living_room_temperature
 humidity: sensor.living_room_humidity
@@ -79,7 +79,7 @@ under **Advanced**.
 ### Room without a thermostat
 
 ```yaml
-type: custom:room-climate-card
+type: custom:dew-point-card
 name: Bathroom
 temperature: sensor.bathroom_temperature
 humidity: sensor.bathroom_humidity
@@ -99,7 +99,7 @@ shows *Turning on…* instead whenever the room is on and the setpoint is at or
 below it:
 
 ```yaml
-type: custom:room-climate-card
+type: custom:dew-point-card
 name: Living room
 temperature: sensor.living_room_temperature
 humidity: sensor.living_room_humidity
@@ -144,11 +144,22 @@ To add a language, copy the `en` block in
 [`src/translations.js`](src/translations.js), translate the texts and open a
 pull request.
 
+## Upgrading from room-climate-card
+
+The card was called `room-climate-card` before version 0.4.0. It was renamed
+because another card in HACS already uses that name.
+
+1. In HACS, remove **Room Climate Card** (pilgaard) and install **Dew Point
+   Card**. GitHub redirects the old repository URL, but HACS keeps the old
+   name until you add it again.
+2. In your dashboards, change `type: custom:room-climate-card` to
+   `type: custom:dew-point-card`. All other options stay the same.
+
 ## Troubleshooting
 
 **"Visual editor not supported", or the card doesn't update after an
 upgrade.** The browser is still running an old version. Open the browser
-console (F12) and look for the `room-climate-card` line with the version
+console (F12) and look for the `dew-point-card` line with the version
 number. If it shows an old version, or appears twice:
 
 - Make sure there is only one resource for the card under **Settings →
@@ -158,14 +169,14 @@ number. If it shows an old version, or appears twice:
   companion app: **Settings → Companion app → Troubleshooting → Reset frontend
   cache**.
 
-**"Custom element doesn't exist: room-climate-card".** The resource isn't
+**"Custom element doesn't exist: dew-point-card".** The resource isn't
 loading. Check the browser console for an error mentioning
-`room-climate-card.js`.
+`dew-point-card.js`.
 
 ## Development
 
 The source lives in `src/` and is bundled with esbuild into
-`dist/room-climate-card.js`, which is what HACS installs.
+`dist/dew-point-card.js`, which is what HACS installs.
 
 ```
 src/
@@ -186,7 +197,7 @@ npm run watch    # rebuild on every change
 Run `npm run build` and commit `dist/` together with your source changes. CI
 fails if they don't match.
 
-To test in Home Assistant, copy `dist/room-climate-card.js` to `config/www/`
+To test in Home Assistant, copy `dist/dew-point-card.js` to `config/www/`
 and add it as a resource (see [Manual](#manual)).
 
 ### Releasing

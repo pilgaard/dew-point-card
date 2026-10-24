@@ -1,9 +1,9 @@
-/* room-climate-card 0.3.0 — built from src/, do not edit. https://github.com/pilgaard/room-climate-card */
+/* dew-point-card 0.4.0 — built from src/, do not edit. https://github.com/pilgaard/dew-point-card */
 
 // src/const.js
-var VERSION = "0.3.0";
-var CARD_TYPE = "room-climate-card";
-var EDITOR_TYPE = "room-climate-card-editor";
+var VERSION = "0.4.0";
+var CARD_TYPE = "dew-point-card";
+var EDITOR_TYPE = "dew-point-card-editor";
 var DEFAULTS = {
   humidity_thresholds: [60, 70],
   // below 60 green, 60-69 yellow, 70+ red
@@ -99,7 +99,7 @@ async function ensureHaForm() {
     await card.constructor.getConfigElement();
   }
 }
-var RoomClimateCardEditor = class extends HTMLElement {
+var DewPointCardEditor = class extends HTMLElement {
   setConfig(config) {
     this._config = config;
     this._render();
@@ -224,7 +224,7 @@ var RoomClimateCardEditor = class extends HTMLElement {
   }
 };
 if (!customElements.get(EDITOR_TYPE)) {
-  customElements.define(EDITOR_TYPE, RoomClimateCardEditor);
+  customElements.define(EDITOR_TYPE, DewPointCardEditor);
 }
 
 // src/card.js
@@ -255,7 +255,7 @@ function dewPointFrom(t, rh) {
   const g = Math.log(rh / 100) + a * t / (b + t);
   return b * g / (a - g);
 }
-var RoomClimateCard = class extends HTMLElement {
+var DewPointCard = class extends HTMLElement {
   static getConfigElement() {
     return document.createElement(EDITOR_TYPE);
   }
@@ -276,11 +276,11 @@ var RoomClimateCard = class extends HTMLElement {
   }
   setConfig(config) {
     if (!config || !config.name) {
-      throw new Error("room-climate-card: 'name' is missing");
+      throw new Error("dew-point-card: 'name' is missing");
     }
     if (!config.temperature && !config.climate) {
       throw new Error(
-        "room-climate-card: set 'temperature' or 'climate'"
+        "dew-point-card: set 'temperature' or 'climate'"
       );
     }
     this._config = { ...DEFAULTS, ...config };
@@ -460,19 +460,19 @@ var RoomClimateCard = class extends HTMLElement {
   }
 };
 if (!customElements.get(CARD_TYPE)) {
-  customElements.define(CARD_TYPE, RoomClimateCard);
+  customElements.define(CARD_TYPE, DewPointCard);
 }
 window.customCards = window.customCards || [];
 if (!window.customCards.some((k) => k.type === CARD_TYPE)) {
   window.customCards.push({
     type: CARD_TYPE,
-    name: "Room Climate Card",
+    name: "Dew Point Card",
     description: "Temperature, humidity and dew point margin with clickable chips",
     preview: true
   });
 }
 console.info(
-  `%c room-climate-card %c ${VERSION} `,
+  `%c dew-point-card %c ${VERSION} `,
   "background:#4f280e;color:#ffb066;border-radius:3px 0 0 3px;padding:2px 4px",
   "background:#ffb066;color:#2b1508;border-radius:0 3px 3px 0;padding:2px 4px"
 );

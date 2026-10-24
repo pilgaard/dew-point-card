@@ -1,5 +1,5 @@
 /*
- * Visual editor for room-climate-card, built on Home Assistant's own ha-form
+ * Visual editor for dew-point-card, built on Home Assistant's own ha-form
  * so it gets the same entity pickers and fields as the built-in cards.
  *
  * The thresholds are arrays in the YAML config but two plain number fields
@@ -36,7 +36,7 @@ async function ensureHaForm() {
   }
 }
 
-class RoomClimateCardEditor extends HTMLElement {
+class DewPointCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = config;
     this._render();
@@ -177,5 +177,5 @@ class RoomClimateCardEditor extends HTMLElement {
 }
 
 if (!customElements.get(EDITOR_TYPE)) {
-  customElements.define(EDITOR_TYPE, RoomClimateCardEditor);
+  customElements.define(EDITOR_TYPE, DewPointCardEditor);
 }

@@ -1,11 +1,11 @@
 /*
- * room-climate-card
- * A room climate card for Home Assistant: temperature, humidity and the margin
+ * dew-point-card
+ * A Home Assistant card for a room: temperature, humidity and the margin
  * to the dew point, with clickable chips that open the history.
  *
  * Example:
  *
- *   type: custom:room-climate-card
+ *   type: custom:dew-point-card
  *   name: Living room
  *   temperature: sensor.living_room_temperature
  *   humidity: sensor.living_room_humidity
@@ -56,7 +56,7 @@ function dewPointFrom(t, rh) {
   return (b * g) / (a - g);
 }
 
-class RoomClimateCard extends HTMLElement {
+class DewPointCard extends HTMLElement {
   static getConfigElement() {
     return document.createElement(EDITOR_TYPE);
   }
@@ -84,11 +84,11 @@ class RoomClimateCard extends HTMLElement {
 
   setConfig(config) {
     if (!config || !config.name) {
-      throw new Error("room-climate-card: 'name' is missing");
+      throw new Error("dew-point-card: 'name' is missing");
     }
     if (!config.temperature && !config.climate) {
       throw new Error(
-        "room-climate-card: set 'temperature' or 'climate'"
+        "dew-point-card: set 'temperature' or 'climate'"
       );
     }
     this._config = { ...DEFAULTS, ...config };
@@ -344,14 +344,14 @@ class RoomClimateCard extends HTMLElement {
 
 // Loaded twice (e.g. both from www/ and HACS), define would throw
 if (!customElements.get(CARD_TYPE)) {
-  customElements.define(CARD_TYPE, RoomClimateCard);
+  customElements.define(CARD_TYPE, DewPointCard);
 }
 
 window.customCards = window.customCards || [];
 if (!window.customCards.some((k) => k.type === CARD_TYPE)) {
   window.customCards.push({
     type: CARD_TYPE,
-    name: "Room Climate Card",
+    name: "Dew Point Card",
     description:
       "Temperature, humidity and dew point margin with clickable chips",
     preview: true,
@@ -359,7 +359,7 @@ if (!window.customCards.some((k) => k.type === CARD_TYPE)) {
 }
 
 console.info(
-  `%c room-climate-card %c ${VERSION} `,
+  `%c dew-point-card %c ${VERSION} `,
   "background:#4f280e;color:#ffb066;border-radius:3px 0 0 3px;padding:2px 4px",
   "background:#ffb066;color:#2b1508;border-radius:0 3px 3px 0;padding:2px 4px"
 );

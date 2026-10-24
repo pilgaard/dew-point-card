@@ -6,7 +6,7 @@ const watch = process.argv.includes("--watch");
 
 const options = {
   entryPoints: ["src/card.js"],
-  outfile: "dist/room-climate-card.js",
+  outfile: "dist/dew-point-card.js",
   bundle: true,
   format: "esm",
   target: "es2020",
@@ -16,7 +16,7 @@ const options = {
   loader: { ".css": "text" },
   define: { __VERSION__: JSON.stringify(version) },
   banner: {
-    js: `/* room-climate-card ${version} — built from src/, do not edit. https://github.com/pilgaard/room-climate-card */`,
+    js: `/* dew-point-card ${version} — built from src/, do not edit. https://github.com/pilgaard/dew-point-card */`,
   },
   logLevel: "info",
 };
