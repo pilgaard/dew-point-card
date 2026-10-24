@@ -3,79 +3,83 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 [![Validate](https://github.com/pilgaard/room-climate-card/actions/workflows/validate.yml/badge.svg)](https://github.com/pilgaard/room-climate-card/actions/workflows/validate.yml)
 
-Et rumklima-kort til Home Assistant. Det viser temperatur, luftfugtighed og
-hvor langt temperaturen er fra dugpunktet. De to chips kan klikkes og åbner
-historikken.
+A room climate card for Home Assistant. It shows the temperature, the humidity
+and how far the temperature is from the dew point. Both chips are clickable and
+open the history.
 
-- Én fil, intet byggeskridt, ingen afhængigheder
-- Regner selv dugpunktet ud fra temperatur og fugt, så du ikke behøver en
-  template-sensor for hvert rum
-- Baggrunden skifter efter termostaten: slukket, tændt eller varmer
-- Kan vise Better Thermostats "parkerede" setpunkt som *Tænder…*
+- One file, no build step, no dependencies
+- Calculates the dew point from temperature and humidity, so you don't need a
+  template sensor for every room
+- The background follows the thermostat: off, on or heating
+- Works with any `climate` entity. If you use Better Thermostat, the card can
+  also show a "parked" setpoint as *Tænder…* (see `parked_setpoint`)
 
-> Teksterne på kortet er på dansk.
+The card does not require Better Thermostat or any other integration.
+
+> The card's labels are in Danish.
 
 ## Installation
 
-### HACS (anbefalet)
+### HACS (recommended)
 
-1. Åbn HACS i Home Assistant.
-2. Menuen ⋮ → **Custom repositories**.
-3. Indsæt `https://github.com/pilgaard/room-climate-card`, vælg typen
-   **Dashboard** og klik **Add**.
-4. Find **Room Climate Card**, klik **Download** og genindlæs browseren.
+1. Open HACS in Home Assistant.
+2. Open the ⋮ menu → **Custom repositories**.
+3. Paste `https://github.com/pilgaard/room-climate-card`, choose the type
+   **Dashboard** and click **Add**.
+4. Find **Room Climate Card**, click **Download** and reload your browser.
 
-### Manuelt
+### Manual
 
-1. Kopiér `room-climate-card.js` til `config/www/`.
-2. **Indstillinger → Dashboards → ⋮ → Ressourcer → Tilføj ressource**:
+1. Copy `room-climate-card.js` to `config/www/`.
+2. Go to **Settings → Dashboards → ⋮ → Resources → Add resource**:
    - URL: `/local/room-climate-card.js`
-   - Type: **JavaScript-modul**
-3. Genindlæs browseren.
+   - Type: **JavaScript module**
+3. Reload your browser.
 
-## Konfiguration
+## Configuration
 
 ```yaml
 type: custom:room-climate-card
-name: Stuen
-temperature: sensor.stuen_temperatur
-humidity: sensor.stuen_luftfugtighed
-climate: climate.stuen
+name: Living room
+temperature: sensor.living_room_temperature
+humidity: sensor.living_room_humidity
+climate: climate.living_room
 radiators: 2
 ```
 
-| Option                | Påkrævet | Standard   | Beskrivelse                                                                                   |
-| --------------------- | -------- | ---------- | --------------------------------------------------------------------------------------------- |
-| `name`                | ja       |            | Rummets navn                                                                                  |
-| `temperature`         | *        |            | Temperatursensor. Uden den bruges termostatens `current_temperature`                          |
-| `climate`             | *        |            | Termostat. Styrer baggrund og bundlinje                                                       |
-| `humidity`            | nej      |            | Fugtsensor (%)                                                                                |
-| `dew_point`           | nej      |            | Færdig dugpunktssensor. Ellers regnes dugpunktet af temperatur og fugt                        |
-| `dew_margin`          | nej      |            | Færdig sensor for temperatur minus dugpunkt. Vinder over både `dew_point` og beregningen      |
-| `radiators`           | nej      | `1`        | Antal radiatorer. Vises i bundlinjen når der er mere end én                                   |
-| `parked_setpoint`     | nej      |            | Kun Better Thermostat: setpunktet den parkerer på mens rummet er slukket (typisk `5`)         |
-| `humidity_thresholds` | nej      | `[60, 70]` | Fugt-chip: under første grøn, fra første gul, fra anden rød                                   |
-| `dew_thresholds`      | nej      | `[3, 5]`   | Dug-chip (K): under første rød, fra første gul, fra anden orange                              |
+| Option                | Required | Default    | Description                                                                                                                                       |
+| --------------------- | -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                | yes      |            | Room name                                                                                                                                         |
+| `temperature`         | *        |            | Temperature sensor. Without it, the thermostat's `current_temperature` is used                                                                    |
+| `climate`             | *        |            | Thermostat. Controls the background and the bottom line                                                                                           |
+| `humidity`            | no       |            | Humidity sensor (%)                                                                                                                               |
+| `dew_point`           | no       |            | Existing dew point sensor. If not set, the dew point is calculated from temperature and humidity                                                  |
+| `dew_margin`          | no       |            | Existing sensor for temperature minus dew point. Takes priority over both `dew_point` and the calculation                                         |
+| `radiators`           | no       | `1`        | Number of radiators. Shown in the bottom line when there is more than one                                                                         |
+| `parked_setpoint`     | no       |            | The setpoint the thermostat parks at while the room is off (Better Thermostat: usually `5`). If the room is on and the setpoint is still at or below this value, the bottom line shows *Tænder…* |
+| `humidity_thresholds` | no       | `[60, 70]` | Humidity chip: green below the first value, yellow from the first, red from the second                                                            |
+| `dew_thresholds`      | no       | `[3, 5]`   | Dew point chip (K): red below the first value, yellow from the first, orange from the second                                                      |
 
-\* Du skal angive mindst én af `temperature` og `climate`.
+\* You must set at least one of `temperature` and `climate`.
 
-### Rum uden termostat
+### Room without a thermostat
 
 ```yaml
 type: custom:room-climate-card
-name: Badeværelse
-temperature: sensor.bad_temperatur
-humidity: sensor.bad_luftfugtighed
+name: Bathroom
+temperature: sensor.bathroom_temperature
+humidity: sensor.bathroom_humidity
 ```
 
-Bundlinjen viser så det absolutte dugpunkt.
+The bottom line then shows the absolute dew point.
 
-## Dugpunkt
+## Dew point
 
-Dugpunktet regnes med Magnus-formlen og Sonntags koefficienter
-(a = 17,62, b = 243,12 °C). Dug-chippen viser temperaturen minus dugpunktet i
-kelvin. Er marginen lille, kan der danne sig kondens på kolde flader.
+The dew point is calculated with the Magnus formula using Sonntag's
+coefficients (a = 17.62, b = 243.12 °C). The dew point chip shows the
+temperature minus the dew point in kelvin. When the margin is small,
+condensation can form on cold surfaces.
 
-## Licens
+## License
 
 [MIT](LICENSE)
