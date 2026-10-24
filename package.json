@@ -1,0 +1,16 @@
+{
+  "name": "room-climate-card",
+  "version": "0.2.0",
+  "description": "Room climate card for Home Assistant: temperature, humidity and dew point margin",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": "github:pilgaard/room-climate-card",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

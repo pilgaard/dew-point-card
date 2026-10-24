@@ -14,14 +14,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check that the tag matches VERSION in the card
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Check that the tag matches the version in package.json
         run: |
           tag="${GITHUB_REF_NAME#v}"
-          version=$(sed -n 's/^const VERSION = "\(.*\)";$/\1/p' room-climate-card.js)
+          version=$(node -p "require('./package.json').version")
           if [ "$tag" != "$version" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match VERSION $version" >&2
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $version" >&2
             exit 1
           fi
+
+      - name: Check that the committed dist/ was built from this source
+        run: |
+          npm ci
+          npm run build
+          git diff --exit-code dist/
 
       # No release asset: GitHub's redirect for release downloads carries a
       # Content-Security-Policy header over 8190 bytes, which aiohttp in Home

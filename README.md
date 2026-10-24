@@ -7,16 +7,16 @@ A room climate card for Home Assistant. It shows the temperature, the humidity
 and how far the temperature is from the dew point. Both chips are clickable and
 open the history.
 
-- One file, no build step, no dependencies
+- Visual editor: set it up from the dashboard UI, no YAML needed
+- One file to install, no dependencies
 - Calculates the dew point from temperature and humidity, so you don't need a
   template sensor for every room
 - The background follows the thermostat: off, on or heating
 - Works with any `climate` entity. If you use Better Thermostat, the card can
-  also show a "parked" setpoint as *Tænder…* (see `parked_setpoint`)
+  also show a "parked" setpoint as *Turning on…* (see `parked_setpoint`)
+- Follows your Home Assistant language (English and Danish included)
 
 The card does not require Better Thermostat or any other integration.
-
-> The card's labels are in Danish.
 
 ## Installation
 
@@ -34,13 +34,19 @@ Click the button above and then **Download**, or add the repository manually:
 
 ### Manual
 
-1. Copy `room-climate-card.js` to `config/www/`.
+1. Download `dist/room-climate-card.js` from the
+   [latest release](https://github.com/pilgaard/room-climate-card/releases/latest)
+   (under *Source code*) or straight from the repository, and copy it to
+   `config/www/`.
 2. Go to **Settings → Dashboards → ⋮ → Resources → Add resource**:
    - URL: `/local/room-climate-card.js`
    - Type: **JavaScript module**
 3. Reload your browser.
 
 ## Configuration
+
+Add the card from the dashboard editor: **Edit dashboard → Add card → Room
+Climate Card**. All options below can be set in the visual editor, or in YAML:
 
 ```yaml
 type: custom:room-climate-card
@@ -60,9 +66,10 @@ radiators: 2
 | `dew_point`           | no       |            | Existing dew point sensor. If not set, the dew point is calculated from temperature and humidity                                                  |
 | `dew_margin`          | no       |            | Existing sensor for temperature minus dew point. Takes priority over both `dew_point` and the calculation                                         |
 | `radiators`           | no       | `1`        | Number of radiators. Shown in the bottom line when there is more than one                                                                         |
-| `parked_setpoint`     | no       |            | The setpoint the thermostat parks at while the room is off (Better Thermostat: usually `5`). If the room is on and the setpoint is still at or below this value, the bottom line shows *Tænder…* |
+| `parked_setpoint`     | no       |            | The setpoint the thermostat parks at while the room is off (Better Thermostat: usually `5`). If the room is on and the setpoint is still at or below this value, the bottom line shows *Turning on…* |
 | `humidity_thresholds` | no       | `[60, 70]` | Humidity chip: green below the first value, yellow from the first, red from the second                                                            |
 | `dew_thresholds`      | no       | `[3, 5]`   | Dew point chip (K): red below the first value, yellow from the first, orange from the second                                                      |
+| `language`            | no       |            | Language of the card's texts, e.g. `en` or `da`. Defaults to your Home Assistant language                                                        |
 
 \* You must set at least one of `temperature` and `climate`.
 
@@ -77,12 +84,61 @@ humidity: sensor.bathroom_humidity
 
 The bottom line then shows the absolute dew point.
 
+## Languages
+
+The card uses the language set in your Home Assistant profile, and numbers are
+formatted to match. Use the `language` option to override it for a single card.
+
+Included: English (`en`) and Danish (`da`). Other languages fall back to
+English.
+
+To add a language, copy the `en` block in
+[`src/translations.js`](src/translations.js), translate the texts, add the
+language to `LANGUAGE_NAMES` and open a pull request.
+
 ## Dew point
 
 The dew point is calculated with the Magnus formula using Sonntag's
 coefficients (a = 17.62, b = 243.12 °C). The dew point chip shows the
 temperature minus the dew point in kelvin. When the margin is small,
 condensation can form on cold surfaces.
+
+## Development
+
+The source lives in `src/` and is bundled with esbuild into
+`dist/room-climate-card.js`, which is what HACS installs.
+
+```
+src/
+  room-climate-card.js   the card (entry point)
+  editor.js              the visual editor, built on Home Assistant's ha-form
+  translations.js        texts for the card and the editor
+  styles.css             the card's styles
+  const.js               version and default options
+```
+
+```sh
+npm install
+npm run build    # one-off build
+npm run watch    # rebuild on every change
+```
+
+`dist/` is committed, because HACS installs it straight from the repository.
+Run `npm run build` and commit `dist/` together with your source changes. CI
+fails if they don't match.
+
+To test in Home Assistant, copy `dist/room-climate-card.js` to `config/www/`
+and add it as a resource (see *Manual* above).
+
+### Releasing
+
+1. Bump `version` in `package.json` and run `npm install` to update the lock
+   file.
+2. `npm run build` and commit.
+3. `git tag v<version> && git push --tags`
+
+The release workflow checks that the tag matches `package.json` and that
+`dist/` is up to date, then creates the GitHub release.
 
 ## License
 

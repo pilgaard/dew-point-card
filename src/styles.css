@@ -1,0 +1,89 @@
+ha-card {
+  position: relative;
+  box-sizing: border-box;
+  height: 152px;
+  border: none;
+  box-shadow: none;
+  border-radius: 26px;
+  overflow: hidden;
+  padding: 13px 14px 14px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.chips {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 13px/1 var(--ha-card-header-font-family, inherit);
+  letter-spacing: 0.2px;
+  border: none;
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 11px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap; /* otherwise "56 %" wraps on narrow cards */
+  flex: none;
+}
+
+/* Invisible touch target: the pill looks 36px tall, but the hit area is 44px,
+   as Apple and Material recommend for a finger. */
+.chip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 44px;
+}
+
+.chip:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.chip ha-icon {
+  --mdc-icon-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+}
+
+.temp {
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -1.2px;
+}
+
+.name {
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  opacity: 0.92;
+}
+
+.footer {
+  font-size: 11.5px;
+  font-weight: 500;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
