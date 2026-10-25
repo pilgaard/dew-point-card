@@ -1,16 +1,32 @@
+/* Masonry view: fixed height. Sections view (layout="grid"): fill the cell
+   the user picked in the layout tab. With auto height the cell has no height
+   of its own, and the card falls back to its content (~140 px). */
+:host {
+  display: block;
+}
+
+:host([layout="grid"]) {
+  height: 100%;
+}
+
 ha-card {
   position: relative;
   box-sizing: border-box;
   height: 152px;
+  container-type: inline-size; /* for the cqi font size below */
   border: none;
   box-shadow: none;
   border-radius: 26px;
   overflow: hidden;
-  padding: 13px 14px 14px 18px;
+  padding: 13px 16px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   cursor: pointer;
+}
+
+:host([layout="grid"]) ha-card {
+  height: 100%;
 }
 
 .chips {
@@ -30,7 +46,7 @@ ha-card {
   border: none;
   border-radius: 999px;
   min-height: 36px;
-  padding: 0 11px;
+  padding: 0 13px;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap; /* otherwise "56 %" wraps on narrow cards */
@@ -66,7 +82,8 @@ ha-card {
 }
 
 .temp {
-  font-size: 40px;
+  /* shrinks on narrow cards so "21,5°" never gets cut off */
+  font-size: min(40px, 30cqi);
   font-weight: 300;
   line-height: 1.02;
   letter-spacing: -1.2px;
@@ -77,6 +94,9 @@ ha-card {
   font-weight: 600;
   line-height: 1.25;
   opacity: 0.92;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .footer {
@@ -86,4 +106,86 @@ ha-card {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ---------- sizes (attributes set by the card from its own box) ---------- */
+
+/* Hidden copy of the chip texts, for measuring their width (see _fitChips,
+   which also gives it the chips' font). */
+.measure {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.measure span {
+  display: inline-block;
+}
+
+/* narrow: the chips don't fit side by side with icons. Only the horizontal
+   padding changes, so the height stays the same. */
+:host([narrow]) ha-card {
+  padding-left: 11px;
+  padding-right: 11px;
+}
+
+:host([narrow]) .chips {
+  gap: 4px;
+}
+
+:host([narrow]) .chip {
+  padding: 0 10px;
+  gap: 0;
+}
+
+:host([narrow]) .chip ha-icon {
+  display: none;
+}
+
+/* extra narrow: not even without icons, so they are stacked */
+:host([xnarrow]) .chips {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+:host([xnarrow]) .chip {
+  min-height: 28px;
+}
+
+:host([xnarrow]) .chip::after {
+  height: 100%; /* stacked targets must not overlap */
+}
+
+/* short: no bottom line */
+:host([short]) ha-card {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+:host([short]) .footer {
+  display: none;
+}
+
+:host([short]) .temp {
+  font-size: min(32px, 30cqi);
+}
+
+:host([short][xnarrow]) .chip {
+  min-height: 24px;
+  font-size: 12px;
+}
+
+/* tall: bigger temperature */
+:host([tall]) .temp {
+  font-size: 52px;
+  letter-spacing: -1.6px;
+}
+
+:host([tall]) .name {
+  font-size: 16px;
+}
+
+:host([tall]) .footer {
+  font-size: 12.5px;
 }

@@ -1,7 +1,7 @@
-/* dew-point-card 0.4.0 — built from src/, do not edit. https://github.com/pilgaard/dew-point-card */
+/* dew-point-card 0.5.0 — built from src/, do not edit. https://github.com/pilgaard/dew-point-card */
 
 // src/const.js
-var VERSION = "0.4.0";
+var VERSION = "0.5.0";
 var CARD_TYPE = "dew-point-card";
 var EDITOR_TYPE = "dew-point-card-editor";
 var DEFAULTS = {
@@ -79,7 +79,198 @@ function textsFor(language) {
 }
 
 // src/styles.css
-var styles_default = 'ha-card {\n  position: relative;\n  box-sizing: border-box;\n  height: 152px;\n  border: none;\n  box-shadow: none;\n  border-radius: 26px;\n  overflow: hidden;\n  padding: 13px 14px 14px 18px;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  cursor: pointer;\n}\n\n.chips {\n  display: flex;\n  justify-content: space-between;\n  align-items: flex-start;\n  gap: 6px;\n}\n\n.chip {\n  position: relative;\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  font: 600 13px/1 var(--ha-card-header-font-family, inherit);\n  letter-spacing: 0.2px;\n  border: none;\n  border-radius: 999px;\n  min-height: 36px;\n  padding: 0 11px;\n  cursor: pointer;\n  font-family: inherit;\n  white-space: nowrap; /* otherwise "56 %" wraps on narrow cards */\n  flex: none;\n}\n\n/* Invisible touch target: the pill looks 36px tall, but the hit area is 44px,\n   as Apple and Material recommend for a finger. */\n.chip::after {\n  content: "";\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 50%;\n  transform: translateY(-50%);\n  height: 44px;\n}\n\n.chip:focus-visible {\n  outline: 2px solid currentColor;\n  outline-offset: 2px;\n}\n\n.chip ha-icon {\n  --mdc-icon-size: 16px;\n  width: 16px;\n  height: 16px;\n}\n\n.body {\n  display: flex;\n  flex-direction: column;\n}\n\n.temp {\n  font-size: 40px;\n  font-weight: 300;\n  line-height: 1.02;\n  letter-spacing: -1.2px;\n}\n\n.name {\n  font-size: 14.5px;\n  font-weight: 600;\n  line-height: 1.25;\n  opacity: 0.92;\n}\n\n.footer {\n  font-size: 11.5px;\n  font-weight: 500;\n  margin-top: 4px;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n';
+var styles_default = `/* Masonry view: fixed height. Sections view (layout="grid"): fill the cell
+   the user picked in the layout tab. With auto height the cell has no height
+   of its own, and the card falls back to its content (~140 px). */
+:host {
+  display: block;
+}
+
+:host([layout="grid"]) {
+  height: 100%;
+}
+
+ha-card {
+  position: relative;
+  box-sizing: border-box;
+  height: 152px;
+  container-type: inline-size; /* for the cqi font size below */
+  border: none;
+  box-shadow: none;
+  border-radius: 26px;
+  overflow: hidden;
+  padding: 13px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+:host([layout="grid"]) ha-card {
+  height: 100%;
+}
+
+.chips {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 13px/1 var(--ha-card-header-font-family, inherit);
+  letter-spacing: 0.2px;
+  border: none;
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 13px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap; /* otherwise "56 %" wraps on narrow cards */
+  flex: none;
+}
+
+/* Invisible touch target: the pill looks 36px tall, but the hit area is 44px,
+   as Apple and Material recommend for a finger. */
+.chip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 44px;
+}
+
+.chip:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.chip ha-icon {
+  --mdc-icon-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+}
+
+.temp {
+  /* shrinks on narrow cards so "21,5\xB0" never gets cut off */
+  font-size: min(40px, 30cqi);
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -1.2px;
+}
+
+.name {
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  opacity: 0.92;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer {
+  font-size: 11.5px;
+  font-weight: 500;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- sizes (attributes set by the card from its own box) ---------- */
+
+/* Hidden copy of the chip texts, for measuring their width (see _fitChips,
+   which also gives it the chips' font). */
+.measure {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.measure span {
+  display: inline-block;
+}
+
+/* narrow: the chips don't fit side by side with icons. Only the horizontal
+   padding changes, so the height stays the same. */
+:host([narrow]) ha-card {
+  padding-left: 11px;
+  padding-right: 11px;
+}
+
+:host([narrow]) .chips {
+  gap: 4px;
+}
+
+:host([narrow]) .chip {
+  padding: 0 10px;
+  gap: 0;
+}
+
+:host([narrow]) .chip ha-icon {
+  display: none;
+}
+
+/* extra narrow: not even without icons, so they are stacked */
+:host([xnarrow]) .chips {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+:host([xnarrow]) .chip {
+  min-height: 28px;
+}
+
+:host([xnarrow]) .chip::after {
+  height: 100%; /* stacked targets must not overlap */
+}
+
+/* short: no bottom line */
+:host([short]) ha-card {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+:host([short]) .footer {
+  display: none;
+}
+
+:host([short]) .temp {
+  font-size: min(32px, 30cqi);
+}
+
+:host([short][xnarrow]) .chip {
+  min-height: 24px;
+  font-size: 12px;
+}
+
+/* tall: bigger temperature */
+:host([tall]) .temp {
+  font-size: 52px;
+  letter-spacing: -1.6px;
+}
+
+:host([tall]) .name {
+  font-size: 16px;
+}
+
+:host([tall]) .footer {
+  font-size: 12.5px;
+}
+`;
 
 // src/editor.js
 var SIMPLE_KEYS = [
@@ -241,6 +432,9 @@ var GRADIENTS = {
   off: "linear-gradient(155deg,#2c2c2c 0%,#1b1b1b 100%)"
 };
 var UNAVAILABLE = ["unavailable", "unknown", "none", ""];
+var SHORT = 130;
+var TALL = 230;
+var TALL_MIN_WIDTH = 200;
 function numericState(hass, entityId) {
   if (!entityId) return null;
   const s = hass && hass.states[entityId];
@@ -296,12 +490,79 @@ var DewPointCard = class extends HTMLElement {
     }
     this._update();
   }
+  /* ---------- layout (sections view) ---------- */
+  // Default and limits for the layout tab. Without this Home Assistant gives
+  // custom cards 12 columns and auto height, and the height can't be changed.
+  getGridOptions() {
+    return {
+      columns: 6,
+      rows: 3,
+      min_columns: 3,
+      min_rows: 2
+    };
+  }
+  // Home Assistant sets layout = "grid" in a sections view. Reflected to an
+  // attribute so the CSS can fill the grid cell instead of using a fixed height.
+  set layout(value) {
+    this._layout = value;
+    if (value) this.setAttribute("layout", value);
+    else this.removeAttribute("layout");
+  }
+  get layout() {
+    return this._layout;
+  }
+  // The border box, not the default content box: the narrow attributes change
+  // the padding, so the content box would change too, fire the observer again
+  // and make the chips flicker between their sizes.
+  connectedCallback() {
+    if (this._resizeObserver && this._el) {
+      this._resizeObserver.observe(this._el.card, { box: "border-box" });
+    }
+  }
+  disconnectedCallback() {
+    if (this._resizeObserver) this._resizeObserver.disconnect();
+  }
+  _resized() {
+    const { width, height } = this._el.card.getBoundingClientRect();
+    if (!width || !height) return;
+    if (this._size && this._size.width === width && this._size.height === height) {
+      return;
+    }
+    this._size = { width, height };
+    this._setAttr("short", height < SHORT);
+    this._setAttr("tall", height >= TALL && width >= TALL_MIN_WIDTH);
+    this._fitChips();
+  }
+  // Full chips if they fit side by side, then without icons, then stacked.
+  // Decided from the card's width and the chip texts only — never by trying a
+  // layout and measuring it. Trying made the card's height change a little,
+  // which fired the ResizeObserver again, and at some values (63 %) the chips
+  // flickered between the two sizes. The numbers must match styles.css.
+  _fitChips() {
+    const el = this._el;
+    const width = el.card.getBoundingClientRect().width;
+    if (!width) return;
+    const chip = getComputedStyle(el.humidity);
+    el.measure.style.font = chip.font;
+    el.measure.style.letterSpacing = chip.letterSpacing;
+    el.measureHumidity.textContent = el.humidityText.textContent;
+    el.measureDew.textContent = el.dewText.textContent;
+    const text = el.measureHumidity.getBoundingClientRect().width + el.measureDew.getBoundingClientRect().width;
+    const full = text + 2 * (26 + 16 + 6) + 6 + 32;
+    const narrow = text + 2 * 20 + 4 + 22;
+    this._setAttr("narrow", width < full);
+    this._setAttr("xnarrow", width < narrow);
+  }
+  _setAttr(name, on) {
+    if (this.hasAttribute(name) !== on) this.toggleAttribute(name, on);
+  }
   _ourEntities() {
     const c = this._config;
     return [c.temperature, c.humidity, c.climate, c.dew_point].filter(Boolean);
   }
+  // Masonry view: 152 px at 50 px per unit
   getCardSize() {
-    return 2;
+    return 3;
   }
   /* ---------- language ---------- */
   _language() {
@@ -336,10 +597,14 @@ var DewPointCard = class extends HTMLElement {
           <div class="name"></div>
           <div class="footer"></div>
         </div>
+        <div class="measure" aria-hidden="true"><span></span><span></span></div>
       </ha-card>`;
     const $ = (s) => this.shadowRoot.querySelector(s);
     this._el = {
       card: $("ha-card"),
+      measure: $(".measure"),
+      measureHumidity: $(".measure span:first-child"),
+      measureDew: $(".measure span:last-child"),
       humidity: $("#humidity"),
       humidityText: $("#humidity span"),
       dew: $("#dew"),
@@ -348,6 +613,9 @@ var DewPointCard = class extends HTMLElement {
       name: $(".name"),
       footer: $(".footer")
     };
+    if (this._resizeObserver) this._resizeObserver.disconnect();
+    this._resizeObserver = new ResizeObserver(() => this._resized());
+    if (this.isConnected) this._resizeObserver.observe(this._el.card, { box: "border-box" });
     this._el.card.addEventListener(
       "click",
       () => this._moreInfo(this._config.climate || this._config.temperature)
@@ -414,6 +682,7 @@ var DewPointCard = class extends HTMLElement {
       dColor,
       !!(c.dew_point || c.humidity)
     );
+    this._fitChips();
     this._el.footer.textContent = this._footer(
       climate,
       isOn,

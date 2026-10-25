@@ -10,6 +10,8 @@ background follows the thermostat.
 ![Dew point cards on a dashboard](https://raw.githubusercontent.com/pilgaard/dew-point-card/main/docs/cards.png)
 
 - Visual editor: set it up from the dashboard UI, no YAML needed
+- Resizable in sections views: from a quarter of a section to full width,
+  2 rows or taller
 - Calculates the dew point from temperature and humidity, so you don't need a
   template sensor for every room
 - Works with any `climate` entity, and with rooms that have no thermostat
@@ -109,6 +111,19 @@ parked_setpoint: 5
 
 Leave it out for other thermostats, so a room deliberately turned down to the
 minimum isn't shown as turning on.
+
+## Size in a sections view
+
+In a sections view the card can be resized in the **Layout** tab of the card
+editor. It starts at 6 columns × 3 rows, and can go down to 3 columns and
+2 rows. It adapts to the size it gets:
+
+- **Narrow:** the chips drop their icons, and stack when they still don't fit
+  side by side. The temperature shrinks with the width.
+- **2 rows:** the bottom line is hidden.
+- **4 rows or more** (and at least ~200 px wide): bigger temperature.
+
+In a masonry view the card has a fixed height, as before.
 
 ## What the card shows
 

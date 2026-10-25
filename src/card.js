@@ -35,6 +35,15 @@ const GRADIENTS = {
 
 const UNAVAILABLE = ["unavailable", "unknown", "none", ""];
 
+// In a sections view the user picks the size in the layout tab, so the card has
+// to fit whatever it gets. Columns in a section are ~20–34 px wide plus an 8 px
+// gap, rows 56 px plus 8 px: 3 columns ≈ 75–120 px, 6 ≈ 155–220 px, 2 rows =
+// 120 px, 3 rows = 184 px. The width is handled by measuring whether the chips
+// fit (that depends on the numbers and the font), the height by breakpoints:
+const SHORT = 130; // no bottom line (2 rows). Below the ~140 px auto height.
+const TALL = 230; // bigger temperature (4+ rows, if wide enough)
+const TALL_MIN_WIDTH = 200;
+
 /** Returns null when the entity is missing or has no usable value. */
 function numericState(hass, entityId) {
   if (!entityId) return null;
@@ -112,13 +121,95 @@ class DewPointCard extends HTMLElement {
     this._update();
   }
 
+  /* ---------- layout (sections view) ---------- */
+
+  // Default and limits for the layout tab. Without this Home Assistant gives
+  // custom cards 12 columns and auto height, and the height can't be changed.
+  getGridOptions() {
+    return {
+      columns: 6,
+      rows: 3,
+      min_columns: 3,
+      min_rows: 2,
+    };
+  }
+
+  // Home Assistant sets layout = "grid" in a sections view. Reflected to an
+  // attribute so the CSS can fill the grid cell instead of using a fixed height.
+  set layout(value) {
+    this._layout = value;
+    if (value) this.setAttribute("layout", value);
+    else this.removeAttribute("layout");
+  }
+
+  get layout() {
+    return this._layout;
+  }
+
+  // The border box, not the default content box: the narrow attributes change
+  // the padding, so the content box would change too, fire the observer again
+  // and make the chips flicker between their sizes.
+  connectedCallback() {
+    if (this._resizeObserver && this._el) {
+      this._resizeObserver.observe(this._el.card, { box: "border-box" });
+    }
+  }
+
+  disconnectedCallback() {
+    if (this._resizeObserver) this._resizeObserver.disconnect();
+  }
+
+  _resized() {
+    const { width, height } = this._el.card.getBoundingClientRect();
+    if (!width || !height) return; // hidden, e.g. another view or tab
+    // only react to real size changes
+    if (this._size && this._size.width === width && this._size.height === height) {
+      return;
+    }
+    this._size = { width, height };
+    this._setAttr("short", height < SHORT);
+    this._setAttr("tall", height >= TALL && width >= TALL_MIN_WIDTH);
+    this._fitChips();
+  }
+
+  // Full chips if they fit side by side, then without icons, then stacked.
+  // Decided from the card's width and the chip texts only — never by trying a
+  // layout and measuring it. Trying made the card's height change a little,
+  // which fired the ResizeObserver again, and at some values (63 %) the chips
+  // flickered between the two sizes. The numbers must match styles.css.
+  _fitChips() {
+    const el = this._el;
+    const width = el.card.getBoundingClientRect().width;
+    if (!width) return;
+    // same font as the chips, whatever the theme makes it
+    const chip = getComputedStyle(el.humidity);
+    el.measure.style.font = chip.font;
+    el.measure.style.letterSpacing = chip.letterSpacing;
+    el.measureHumidity.textContent = el.humidityText.textContent;
+    el.measureDew.textContent = el.dewText.textContent;
+    const text =
+      el.measureHumidity.getBoundingClientRect().width +
+      el.measureDew.getBoundingClientRect().width;
+    // full: padding 2×13 + icon 16 + gap 6 per chip, 6 between, card 16+16
+    const full = text + 2 * (26 + 16 + 6) + 6 + 32;
+    // narrow: padding 2×10 per chip, 4 between, card 11+11
+    const narrow = text + 2 * 20 + 4 + 22;
+    this._setAttr("narrow", width < full);
+    this._setAttr("xnarrow", width < narrow);
+  }
+
+  _setAttr(name, on) {
+    if (this.hasAttribute(name) !== on) this.toggleAttribute(name, on);
+  }
+
   _ourEntities() {
     const c = this._config;
     return [c.temperature, c.humidity, c.climate, c.dew_point].filter(Boolean);
   }
 
+  // Masonry view: 152 px at 50 px per unit
   getCardSize() {
-    return 2;
+    return 3;
   }
 
   /* ---------- language ---------- */
@@ -159,11 +250,15 @@ class DewPointCard extends HTMLElement {
           <div class="name"></div>
           <div class="footer"></div>
         </div>
+        <div class="measure" aria-hidden="true"><span></span><span></span></div>
       </ha-card>`;
 
     const $ = (s) => this.shadowRoot.querySelector(s);
     this._el = {
       card: $("ha-card"),
+      measure: $(".measure"),
+      measureHumidity: $(".measure span:first-child"),
+      measureDew: $(".measure span:last-child"),
       humidity: $("#humidity"),
       humidityText: $("#humidity span"),
       dew: $("#dew"),
@@ -172,6 +267,10 @@ class DewPointCard extends HTMLElement {
       name: $(".name"),
       footer: $(".footer"),
     };
+
+    if (this._resizeObserver) this._resizeObserver.disconnect();
+    this._resizeObserver = new ResizeObserver(() => this._resized());
+    if (this.isConnected) this._resizeObserver.observe(this._el.card, { box: "border-box" });
 
     this._el.card.addEventListener("click", () =>
       this._moreInfo(this._config.climate || this._config.temperature)
@@ -278,6 +377,8 @@ class DewPointCard extends HTMLElement {
       dColor,
       !!(c.dew_point || c.humidity)
     );
+
+    this._fitChips();
 
     // footer
     this._el.footer.textContent = this._footer(

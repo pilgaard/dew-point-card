@@ -1,6 +1,6 @@
 {
   "name": "dew-point-card",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Home Assistant card for room temperature, humidity and dew point margin",
   "private": true,
   "type": "module",
